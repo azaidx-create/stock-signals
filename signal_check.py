@@ -81,26 +81,35 @@ def check_ticker(ticker):
     sma200_yday = float(data["SMA200"].iloc[-2])
 
     crossed_today = (sma50_today > sma200_today) and (sma50_yday <= sma200_yday)
+    crossed_down_today = (sma50_today < sma200_today) and (sma50_yday >= sma200_yday)
     in_uptrend = sma50_today > sma200_today
 
     return {
         "price": price, "sma50": sma50_today, "sma200": sma200_today,
-        "crossed_today": crossed_today, "in_uptrend": in_uptrend,
+        "crossed_today": crossed_today, "crossed_down_today": crossed_down_today,
+        "in_uptrend": in_uptrend,
     }
 
 
 def build_html(market_up, rows, checked_at):
     buy_count = sum(1 for r in rows if r["status"] == "buy")
+    sell_count = sum(1 for r in rows if r["status"] == "sell")
 
-    if buy_count > 0:
-        banner_bg, banner_text = "rgba(53,224,138,0.14)", f"{buy_count} buy signal(s) found today."
+    if buy_count > 0 or sell_count > 0:
+        banner_bg = "rgba(53,224,138,0.14)" if buy_count > 0 else "rgba(224,85,85,0.14)"
+        parts = []
+        if buy_count > 0: parts.append(f"{buy_count} buy signal(s)")
+        if sell_count > 0: parts.append(f"{sell_count} sell signal(s)")
+        banner_text = " and ".join(parts) + " found today."
     else:
-        banner_bg, banner_text = "rgba(138,148,141,0.1)", "No buy signals today. Nothing to act on."
+        banner_bg, banner_text = "rgba(138,148,141,0.1)", "No buy or sell signals today. Nothing to act on."
 
     row_html = ""
     for r in rows:
         if r["status"] == "buy":
             badge = '<span style="background:#35e08a;color:#05130b;padding:6px 12px;border-radius:6px;font-weight:700;">BUY SIGNAL</span>'
+        elif r["status"] == "sell":
+            badge = '<span style="background:#e05555;color:#1a0505;padding:6px 12px;border-radius:6px;font-weight:700;">SELL SIGNAL</span>'
         elif r["status"] == "wait_uptrend":
             badge = '<span style="color:#8a948d;">WAIT — already in uptrend</span>'
         elif r["status"] == "avoid":
@@ -113,10 +122,19 @@ def build_html(market_up, rows, checked_at):
         price_txt = f"${r['price']:.2f}" if r.get("price") is not None else "—"
         if r["status"] == "buy":
             entry_txt = f'<b style="color:#35e08a;">${r["price"]:.2f}</b>'
+            sell_txt = "—"
             stop_txt = f"${r['price']*0.9:.2f}"
+            target_txt = f'<b style="color:#4ba3ff;">${r["price"]*1.20:.2f}</b>'
+        elif r["status"] == "sell":
+            entry_txt = "—"
+            sell_txt = f'<b style="color:#e05555;">${r["price"]:.2f}</b>'
+            stop_txt = "—"
+            target_txt = "—"
         else:
             entry_txt = "—"
+            sell_txt = "—"
             stop_txt = "—"
+            target_txt = "—"
 
         row_html += f"""
         <tr>
@@ -124,7 +142,9 @@ def build_html(market_up, rows, checked_at):
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{price_txt}</td>
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{badge}</td>
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{entry_txt}</td>
+          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{sell_txt}</td>
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;color:#e0a835;">{stop_txt}</td>
+          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{target_txt}</td>
         </tr>"""
 
     return f"""<!DOCTYPE html>
@@ -149,13 +169,19 @@ def build_html(market_up, rows, checked_at):
   <div class="banner">{banner_text}</div>
   <div class="sub">S&amp;P 500 trend: <b>{'UPTREND' if market_up else 'DOWNTREND'}</b></div>
   <table>
-    <thead><tr><th>Ticker</th><th>Price</th><th>Status</th><th>Entry price</th><th>Stop-loss (-10%)</th></tr></thead>
+    <thead><tr><th>Ticker</th><th>Price</th><th>Status</th><th>Entry price</th><th>Sell price</th><th>Stop-loss (-10%)</th><th>Take-profit target (+20%)</th></tr></thead>
     <tbody>{row_html}</tbody>
   </table>
   <footer>
     This reflects a strategy tested to show roughly a 55-60% win rate in normal markets,
-    and losses during prolonged downturns like 2000-2002. Not financial advice.
-    This page updates automatically once a day via a scheduled check - no action needed from you.
+    and losses during prolonged downturns like 2000-2002. The SELL signal fires when a
+    stock's trend reverses (50-day average crosses below 200-day) - this exit rule showed
+    mixed results in testing: it helped in the 2008 crash but hurt during the slower
+    2000-2002 decline. It fires regardless of whether you actually hold that stock - it's
+    a general trend-reversal flag, not a personalized alert tied to your positions. The
+    take-profit target (+20%) is a standard 2:1 reward-to-risk rule of thumb, not a number
+    we specifically backtested as optimal - a sensible default, not a proven target.
+    This page updates automatically once a day - no action needed from you.
   </footer>
 </body>
 </html>"""
@@ -179,6 +205,8 @@ def main():
         buy_signal = result["crossed_today"] and market_up
         if buy_signal:
             status = "buy"
+        elif result["crossed_down_today"]:
+            status = "sell"
         elif result["in_uptrend"]:
             status = "wait_uptrend"
         else:

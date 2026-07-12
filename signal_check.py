@@ -14,7 +14,24 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 
-WATCHLIST = ["AAPL", "MSFT", "JNJ", "PG", "JPM", "KO", "WMT", "V", "HD", "COST"]
+WATCHLIST = [
+    "AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA","BRK-B","JPM","JNJ",
+    "V","PG","XOM","HD","MA","CVX","ABBV","PFE","KO","PEP","MRK","WMT",
+    "BAC","COST","DIS","CSCO","TMO","MCD","ABT","CRM","ACN","DHR","NKE",
+    "LIN","TXN","NEE","PM","UPS","RTX","UNP","MS","SPGI","LOW","INTC",
+    "HON","IBM","CAT","GS","AMGN","SBUX","BA","GE","DE","BLK","AXP","LMT",
+    "MDT","PLD","SYK","GILD","MMC","ADI","CI","T","SO","MO","BKNG","TJX",
+    "REGN","VRTX","ZTS","CB","PGR","ETN","BSX","CME","DUK","SLB","ITW",
+    "APD","EOG","AON","CL","SHW","NSC","WM","EMR","ORLY","MCO","ADP",
+    "PANW","FDX","GD","NOC","MET","USB","SCHW","TGT","PSX","COP","MDLZ",
+    "KMB","AMT","BDX","BK","C","CMCSA","CSX","CVS","D","DOW","AEP","TRV",
+    "WFC","F","GM","AMD","AVGO","ORCL","QCOM","ADBE","NFLX","PYPL",
+    "INTU","NOW","UBER","LRCX","KLAC","SNPS","CDNS","MU","APH","ANET",
+    "ROP","FTNT","MSI","CTAS","PAYX","VRSK","FAST","ODFL","EW","IDXX",
+    "A","IQV","HUM","CNC","ELV","MRNA","BIIB","ALGN","DXCM","ISRG","HCA",
+    "PNC","TFC","COF","AIG","AFL","ALL","PRU","TROW","STT","NTRS","MTB",
+    "FITB","HBAN","RF","KEY","CFG","SYF","DFS","ALLY","NDAQ","ICE","MCK",
+]
 STOP_LOSS_PCT = -10.0
 
 
@@ -94,13 +111,19 @@ def build_html(market_up, rows, checked_at):
             badge = '<span style="color:#8a948d;">no data</span>'
 
         price_txt = f"${r['price']:.2f}" if r.get("price") is not None else "—"
-        stop_txt = f"${r['price']*0.9:.2f}" if r["status"] == "buy" else "—"
+        if r["status"] == "buy":
+            entry_txt = f'<b style="color:#35e08a;">${r["price"]:.2f}</b>'
+            stop_txt = f"${r['price']*0.9:.2f}"
+        else:
+            entry_txt = "—"
+            stop_txt = "—"
 
         row_html += f"""
         <tr>
           <td style="padding:12px 10px;font-weight:700;border-bottom:1px solid #232a26;">{r['ticker']}</td>
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{price_txt}</td>
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{badge}</td>
+          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{entry_txt}</td>
           <td style="padding:12px 10px;border-bottom:1px solid #232a26;color:#e0a835;">{stop_txt}</td>
         </tr>"""
 
@@ -126,7 +149,7 @@ def build_html(market_up, rows, checked_at):
   <div class="banner">{banner_text}</div>
   <div class="sub">S&amp;P 500 trend: <b>{'UPTREND' if market_up else 'DOWNTREND'}</b></div>
   <table>
-    <thead><tr><th>Ticker</th><th>Price</th><th>Status</th><th>Stop-loss (-10%)</th></tr></thead>
+    <thead><tr><th>Ticker</th><th>Price</th><th>Status</th><th>Entry price</th><th>Stop-loss (-10%)</th></tr></thead>
     <tbody>{row_html}</tbody>
   </table>
   <footer>

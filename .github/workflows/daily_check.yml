@@ -1,0 +1,36 @@
+name: Daily Stock Signal Check
+
+on:
+  schedule:
+    # Runs at 9:45 PM UTC = 4:45 PM US Eastern, shortly after US markets close.
+    - cron: '45 21 * * 1-5'
+  workflow_dispatch: {}   # lets you also trigger it manually from the GitHub website
+
+permissions:
+  contents: write
+
+jobs:
+  check-signals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run signal check and build results page
+        run: python signal_check.py
+
+      - name: Commit and push updated results page
+        run: |
+          git config user.name "signal-bot"
+          git config user.email "signal-bot@users.noreply.github.com"
+          git add docs/index.html
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update daily signal results"
+          git push

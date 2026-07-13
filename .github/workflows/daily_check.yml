@@ -4,7 +4,7 @@ on:
   schedule:
     # Runs at 9:45 PM UTC = 4:45 PM US Eastern, shortly after US markets close.
     - cron: '45 21 * * 1-5'
-  workflow_dispatch: {}   # lets you also trigger it manually from the GitHub website
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -12,6 +12,7 @@ permissions:
 jobs:
   check-signals:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -25,6 +26,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run signal check and build results page
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python signal_check.py
 
       - name: Commit and push updated results page

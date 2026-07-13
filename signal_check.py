@@ -492,7 +492,7 @@ def main():
         file.write(html)
 
     print("Wrote docs/index.html")
-    send_telegram_message("✅ Telegram test successful!")
+
     buy_rows = [
         row for row in rows
         if row["status"] == "buy"

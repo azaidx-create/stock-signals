@@ -1,11 +1,7 @@
+"""
 Automated Signal Check - writes a results page automatically.
 ------------------------------------------------------------------
 Runs on GitHub's servers on a daily schedule (no button presses, no
-phone needed). Checks the same tested strategy (50/200-day golden
-cross, confirmed by S&P 500 trend, fundamentals-filtered) and writes
-the results into docs/index.html. That file gets published as a real
-website via GitHub Pages, so you just open one bookmarked link
-anytime to see the latest check - already done for you.
 phone needed). Checks a trend-pullback strategy (50-day average above
 the 200-day average, price within 5% above the 50-day average,
 confirmed by the S&P 500 trend and fundamental filters) and writes
@@ -16,17 +12,34 @@ bookmarked link anytime to see the latest check.
 """
 
 from datetime import datetime, timezone, timedelta
-@@ -20,7 +22,8 @@
+import json
+import os
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import pandas as pd
 import numpy as np
 import yfinance as yf
 
-SAUDI_OFFSET = timedelta(hours=3)  # Saudi Arabia is UTC+3, no daylight saving
 
 SAUDI_OFFSET = timedelta(hours=3)
 
 WATCHLIST = [
     "AAPL","MSFT","GOOGL","AMZN","META","NVDA","TSLA","BRK-B","JPM","JNJ",
-@@ -40,12 +43,15 @@
+    "V","PG","XOM","HD","MA","CVX","ABBV","PFE","KO","PEP","MRK","WMT",
+    "BAC","COST","DIS","CSCO","TMO","MCD","ABT","CRM","ACN","DHR","NKE",
+    "LIN","TXN","NEE","PM","UPS","RTX","UNP","MS","SPGI","LOW","INTC",
+    "HON","IBM","CAT","GS","AMGN","SBUX","BA","GE","DE","BLK","AXP","LMT",
+    "MDT","PLD","SYK","GILD","MMC","ADI","CI","T","SO","MO","BKNG","TJX",
+    "REGN","VRTX","ZTS","CB","PGR","ETN","BSX","CME","DUK","SLB","ITW",
+    "APD","EOG","AON","CL","SHW","NSC","WM","EMR","ORLY","MCO","ADP",
+    "PANW","FDX","GD","NOC","MET","USB","SCHW","TGT","PSX","COP","MDLZ",
+    "KMB","AMT","BDX","BK","C","CMCSA","CSX","CVS","D","DOW","AEP","TRV",
+    "WFC","F","GM","AMD","AVGO","ORCL","QCOM","ADBE","NFLX","PYPL",
+    "INTU","NOW","UBER","LRCX","KLAC","SNPS","CDNS","MU","APH","ANET",
+    "ROP","FTNT","MSI","CTAS","PAYX","VRSK","FAST","ODFL","EW","IDXX",
+    "A","IQV","HUM","CNC","ELV","MRNA","BIIB","ALGN","DXCM","ISRG","HCA",
     "PNC","TFC","COF","AIG","AFL","ALL","PRU","TROW","STT","NTRS","MTB",
     "FITB","HBAN","RF","KEY","CFG","SYF","DFS","ALLY","NDAQ","ICE","MCK",
 ]
@@ -42,7 +55,8 @@ def _flatten_columns(df):
     return df
 
 
-@@ -54,28 +60,57 @@ def passes_fundamental_filter(ticker):
+def passes_fundamental_filter(ticker):
+    try:
         info = yf.Ticker(ticker).info
     except Exception:
         return None
@@ -64,7 +78,6 @@ def _flatten_columns(df):
 
 
 def get_market_uptrend():
-    spy = yf.download("^GSPC", period="2y", interval="1d", progress=False, auto_adjust=True)
     spy = yf.download(
         "^GSPC",
         period="2y",
@@ -81,7 +94,6 @@ def get_market_uptrend():
         )
 
     sma200 = spy["Close"].rolling(200).mean()
-    return bool((spy["Close"].iloc[-1] > sma200.iloc[-1]).item())
 
     return bool(
         (spy["Close"].iloc[-1] > sma200.iloc[-1]).item()
@@ -89,7 +101,6 @@ def get_market_uptrend():
 
 
 def check_ticker(ticker):
-    data = yf.download(ticker, period="2y", interval="1d", progress=False, auto_adjust=True)
     data = yf.download(
         ticker,
         period="2y",
@@ -103,15 +114,13 @@ def check_ticker(ticker):
     if data.empty or len(data) < 200:
         return None
 
-@@ -85,62 +120,101 @@ def check_ticker(ticker):
+    data["SMA50"] = data["Close"].rolling(50).mean()
+    data["SMA200"] = data["Close"].rolling(200).mean()
+
     price = float(data["Close"].iloc[-1])
     sma50_today = float(data["SMA50"].iloc[-1])
     sma200_today = float(data["SMA200"].iloc[-1])
-    sma50_yday = float(data["SMA50"].iloc[-2])
-    sma200_yday = float(data["SMA200"].iloc[-2])
 
-    crossed_today = (sma50_today > sma200_today) and (sma50_yday <= sma200_yday)
-    crossed_down_today = (sma50_today < sma200_today) and (sma50_yday >= sma200_yday)
     in_uptrend = sma50_today > sma200_today
 
     distance_above_sma50_pct = (
@@ -127,9 +136,6 @@ def check_ticker(ticker):
     latest_data_date = data.index[-1].strftime("%Y-%m-%d")
 
     return {
-        "price": price, "sma50": sma50_today, "sma200": sma200_today,
-        "crossed_today": crossed_today, "crossed_down_today": crossed_down_today,
-        "in_uptrend": in_uptrend, "latest_data_date": latest_data_date,
         "price": price,
         "sma50": sma50_today,
         "sma200": sma200_today,
@@ -140,7 +146,6 @@ def check_ticker(ticker):
     }
 
 
-
 def send_telegram_message(message):
     """Send a Telegram alert using GitHub Actions repository secrets."""
 
@@ -148,25 +153,17 @@ def send_telegram_message(message):
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")
 
     if not bot_token or not chat_id:
-        print("Telegram skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing.")
         print(
             "Telegram skipped: "
             "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing."
         )
         return False
 
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = urllib.parse.urlencode({
-        "chat_id": chat_id,
-        "text": message,
-        "disable_web_page_preview": "true",
-    }).encode("utf-8")
     url = (
         f"https://api.telegram.org/"
         f"bot{bot_token}/sendMessage"
     )
 
-    request = urllib.request.Request(url, data=payload, method="POST")
     payload = urllib.parse.urlencode(
         {
             "chat_id": chat_id,
@@ -182,8 +179,6 @@ def send_telegram_message(message):
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
-            result = json.loads(response.read().decode("utf-8"))
         with urllib.request.urlopen(
             request,
             timeout=30,
@@ -200,8 +195,6 @@ def send_telegram_message(message):
         return False
 
     except urllib.error.HTTPError as error:
-        details = error.read().decode("utf-8", errors="replace")
-        print(f"Telegram HTTP error {error.code}: {details}")
         details = error.read().decode(
             "utf-8",
             errors="replace",
@@ -225,21 +218,13 @@ def build_telegram_message(buy_rows, checked_at):
     lines = [
         "📈 STOCK BUY SIGNAL",
         "",
-@@ -151,118 +225,407 @@ def build_telegram_message(buy_rows, checked_at):
+        f"Checked: {checked_at}",
+        f"Signals found: {len(buy_rows)}",
+        "",
+    ]
 
     for row in buy_rows:
         price = row["price"]
-        lines.extend([
-            f"🟢 {row['ticker']}",
-            f"Buy around: ${price:.2f}",
-            f"Stop-loss: ${price * 0.90:.2f} (-10%)",
-            f"Take profit: ${price * 1.20:.2f} (+20%)",
-            "Reason: New 50/200-day golden cross",
-            "Market filter: S&P 500 uptrend confirmed",
-            "",
-        ])
-
-    lines.append("Review the price in TradingView before placing a paper trade.")
 
         lines.extend(
             [
@@ -268,7 +253,6 @@ def build_telegram_message(buy_rows, checked_at):
     return "\n".join(lines)
 
 
-def build_html(market_up, rows, checked_at, run_type, stats, latest_data_date):
 def build_html(
     market_up,
     rows,
@@ -281,27 +265,16 @@ def build_html(
 
     if buy_count > 0:
         banner_bg = "rgba(53,224,138,0.14)"
-        banner_text = f"{buy_count} buy signal(s) found today."
         banner_text = (
             f"{buy_count} buy signal(s) found today."
         )
     else:
         banner_bg = "rgba(138,148,141,0.1)"
-        banner_text = "No buy signals today. Nothing to act on."
         banner_text = (
             "No buy signals today. Nothing to act on."
         )
 
     row_html = ""
-    for r in rows:
-        if r["status"] == "buy":
-            badge = '<span style="background:#35e08a;color:#05130b;padding:6px 12px;border-radius:6px;font-weight:700;">BUY SIGNAL</span>'
-        elif r["status"] == "wait_uptrend":
-            badge = '<span style="color:#8a948d;">WAIT — already in uptrend</span>'
-        elif r["status"] == "avoid":
-            badge = '<span style="color:#e05555;">AVOID — below trend</span>'
-        elif r["status"] == "skipped_fundamentals":
-            badge = '<span style="color:#8a948d;">skipped — weak fundamentals</span>'
 
     for row in rows:
         status = row["status"]
@@ -334,17 +307,11 @@ def build_html(
             )
 
         else:
-            badge = '<span style="color:#8a948d;">no data</span>'
             badge = (
                 '<span style="color:#8a948d;">'
                 "no data</span>"
             )
 
-        price_txt = f"${r['price']:.2f}" if r.get("price") is not None else "—"
-        if r["status"] == "buy":
-            entry_txt = f'<b style="color:#35e08a;">${r["price"]:.2f}</b>'
-            stop_txt = f"${r['price']*0.9:.2f}"
-            target_txt = f'<b style="color:#4ba3ff;">${r["price"]*1.20:.2f}</b>'
         if row.get("price") is not None:
             price_txt = f"${row['price']:.2f}"
         else:
@@ -386,13 +353,6 @@ def build_html(
 
         row_html += f"""
         <tr>
-          <td style="padding:12px 10px;font-weight:700;border-bottom:1px solid #232a26;">{r['ticker']}</td>
-          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{price_txt}</td>
-          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{badge}</td>
-          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{entry_txt}</td>
-          <td style="padding:12px 10px;border-bottom:1px solid #232a26;color:#e0a835;">{stop_txt}</td>
-          <td style="padding:12px 10px;border-bottom:1px solid #232a26;">{target_txt}</td>
-        </tr>"""
           <td style="
             padding:12px 10px;
             font-weight:700;
@@ -451,7 +411,6 @@ def build_html(
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <meta
   name="viewport"
@@ -461,18 +420,6 @@ def build_html(
 <title>Signal Desk — Daily Results</title>
 
 <style>
-  body{{ margin:0; background:#0a0d0c; color:#e7ebe6; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; padding:24px 16px 50px; }}
-  h1{{ font-size:24px; margin-bottom:4px; }}
-  .sub{{ color:#8a948d; font-size:13px; margin-bottom:16px; }}
-  .banner{{ padding:14px 16px; border-radius:6px; font-weight:700; margin-bottom:18px; background:{banner_bg}; }}
-  .stats{{ display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; margin:0 0 22px; }}
-  .card{{ background:#111613; border:1px solid #232a26; border-radius:8px; padding:12px; }}
-  .label{{ color:#8a948d; font-size:11px; text-transform:uppercase; }}
-  .value{{ margin-top:4px; font-size:20px; font-weight:700; }}
-  .table-wrap{{ overflow-x:auto; }}
-  table{{ width:100%; border-collapse:collapse; font-size:14px; }}
-  th{{ text-align:left; font-size:11px; text-transform:uppercase; color:#8a948d; padding:10px; border-bottom:1px solid #232a26; }}
-  footer{{ margin-top:30px; color:#8a948d; font-size:11.5px; line-height:1.6; }}
   body {{
     margin: 0;
     background: #0a0d0c;
@@ -562,11 +509,7 @@ def build_html(
 <body>
 
   <h1>Signal Desk — Daily Results</h1>
-  <div class="sub">Generated: {checked_at} · Run type: <b>{run_type}</b> · Latest market data: <b>{latest_data_date or 'unavailable'}</b></div>
-  <div class="banner">{banner_text}</div>
 
-  <div class="stats">
-  <div class="card"><div class="label">Stocks in watchlist</div><div class="value">{stats['watchlist']}</div></div>
   <div class="sub">
     Generated: {checked_at}
     · Run type: <b>{run_type}</b>
@@ -574,15 +517,10 @@ def build_html(
     <b>{latest_data_date or 'unavailable'}</b>
   </div>
 
-  <div class="card"><div class="label">Passed fundamentals</div><div class="value">{stats['fundamentals_passed']}</div></div>
-  <div class="card"><div class="label">Rejected fundamentals</div><div class="value">{stats['fundamentals_rejected']}</div></div>
-  <div class="card"><div class="label">Fundamentals unavailable</div><div class="value">{stats['fundamentals_unavailable']}</div></div>
   <div class="banner">
     {banner_text}
   </div>
 
-  <div class="card"><div class="label">Price data scanned</div><div class="value">{stats['price_scanned']}</div></div>
-  <div class="card"><div class="label">No usable data</div><div class="value">{stats['no_data']}</div></div>
   <div class="stats">
     <div class="card">
       <div class="label">Stocks in watchlist</div>
@@ -642,20 +580,13 @@ def build_html(
     </div>
   </div>
 
-  <div class="card"><div class="label">New golden crosses</div><div class="value">{stats['golden_crosses']}</div></div>
-  <div class="card"><div class="label">Already in uptrend</div><div class="value">{stats['wait_uptrend']}</div></div>
-  <div class="card"><div class="label">Buy signals</div><div class="value">{stats['buy']}</div></div>
-</div>
   <div class="sub">
     S&amp;P 500 trend:
     <b>{'UPTREND' if market_up else 'DOWNTREND'}</b>
   </div>
 
-  <div class="sub">S&amp;P 500 trend: <b>{'UPTREND' if market_up else 'DOWNTREND'}</b></div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Ticker</th><th>Price</th><th>Status</th><th>Entry price</th><th>Stop-loss (-10%)</th><th>Take-profit target (+20%)</th></tr></thead>
-      <tbody>{row_html}</tbody>
       <thead>
         <tr>
           <th>Ticker</th>
@@ -675,9 +606,6 @@ def build_html(
   </div>
 
   <footer>
-    Scheduled scans run at 9:45 PM UTC, which is 12:45 AM Saudi time on the following calendar day.
-    During US daylight-saving time this is 5:45 PM New York; during standard time it is 4:45 PM New York.
-    Manual workflow runs can appear at any time and are labeled above.
     A BUY signal requires the S&amp;P 500 to be above its
     200-day moving average, the stock's 50-day moving average
     to be above its 200-day moving average, and the stock price
@@ -695,27 +623,34 @@ def build_html(
   </footer>
 
 </body>
-</html>"""
 </html>
 """
 
 
 def main():
     market_up = get_market_uptrend()
-@@ -274,7 +637,7 @@ def main():
+    rows = []
+
+    stats = {
+        "watchlist": len(WATCHLIST),
+        "fundamentals_passed": 0,
         "fundamentals_rejected": 0,
         "fundamentals_unavailable": 0,
         "price_scanned": 0,
-        "golden_crosses": 0,
         "near_sma50": 0,
         "buy": 0,
         "wait_uptrend": 0,
         "avoid": 0,
-@@ -288,7 +651,16 @@ def main():
+        "no_data": 0,
+    }
+
+    latest_dates = []
+
+    for ticker in WATCHLIST:
+        fund_ok = passes_fundamental_filter(ticker)
 
         if fund_ok is False:
             stats["fundamentals_rejected"] += 1
-            rows.append({"ticker": ticker, "price": None, "status": "skipped_fundamentals"})
 
             rows.append(
                 {
@@ -729,14 +664,14 @@ def main():
             continue
 
         if fund_ok is None:
-@@ -297,40 +669,92 @@ def main():
+            stats["fundamentals_unavailable"] += 1
+        else:
             stats["fundamentals_passed"] += 1
 
         result = check_ticker(ticker)
 
         if result is None:
             stats["no_data"] += 1
-            rows.append({"ticker": ticker, "price": None, "status": "no_data"})
 
             rows.append(
                 {
@@ -750,7 +685,6 @@ def main():
             continue
 
         stats["price_scanned"] += 1
-        latest_dates.append(result["latest_data_date"])
         latest_dates.append(
             result["latest_data_date"]
         )
@@ -760,8 +694,6 @@ def main():
             and result["near_sma50"]
         )
 
-        if result["crossed_today"]:
-            stats["golden_crosses"] += 1
         if trend_setup:
             stats["near_sma50"] += 1
 
@@ -771,7 +703,6 @@ def main():
             and result["near_sma50"]
         )
 
-        buy_signal = result["crossed_today"] and market_up
         if buy_signal:
             status = "buy"
 
@@ -782,7 +713,6 @@ def main():
             status = "avoid"
 
         stats[status] += 1
-        rows.append({"ticker": ticker, "price": result["price"], "status": status})
 
         rows.append(
             {
@@ -795,8 +725,6 @@ def main():
         )
 
     checked_at_utc = datetime.now(timezone.utc)
-    checked_at_saudi = checked_at_utc + SAUDI_OFFSET
-    checked_at = checked_at_saudi.strftime("%Y-%m-%d %I:%M %p") + " Saudi time"
     checked_at_saudi = (
         checked_at_utc + SAUDI_OFFSET
     )
@@ -813,18 +741,15 @@ def main():
         "local",
     )
 
-    event_name = os.environ.get("GITHUB_EVENT_NAME", "local")
     run_type = {
         "schedule": "Scheduled daily scan",
         "workflow_dispatch": "Manual workflow run",
         "local": "Local run",
-    }.get(event_name, event_name)
     }.get(
         event_name,
         event_name,
     )
 
-    latest_data_date = max(latest_dates) if latest_dates else None
     latest_data_date = (
         max(latest_dates)
         if latest_dates
@@ -833,13 +758,13 @@ def main():
 
     html = build_html(
         market_up=market_up,
-@@ -341,21 +765,45 @@ def main():
+        rows=rows,
+        checked_at=checked_at,
+        run_type=run_type,
+        stats=stats,
         latest_data_date=latest_data_date,
     )
 
-    os.makedirs("docs", exist_ok=True)
-    with open("docs/index.html", "w", encoding="utf-8") as f:
-        f.write(html)
     os.makedirs(
         "docs",
         exist_ok=True,
@@ -855,7 +780,6 @@ def main():
     print("Wrote docs/index.html")
     print(f"Scan statistics: {stats}")
     print(f"Run type: {run_type}")
-    print(f"Latest market data date: {latest_data_date}")
     print(
         f"Latest market data date: "
         f"{latest_data_date}"
@@ -867,9 +791,7 @@ def main():
         if row["status"] == "buy"
     ]
 
-    buy_rows = [row for row in rows if row["status"] == "buy"]
     if buy_rows:
-        message = build_telegram_message(buy_rows, checked_at)
         message = build_telegram_message(
             buy_rows,
             checked_at,
@@ -878,7 +800,6 @@ def main():
         send_telegram_message(message)
 
     else:
-        print("No BUY signals found. No Telegram notification sent.")
         print(
             "No BUY signals found. "
             "No Telegram notification sent."
@@ -886,3 +807,4 @@ def main():
 
 
 if __name__ == "__main__":
+    main()

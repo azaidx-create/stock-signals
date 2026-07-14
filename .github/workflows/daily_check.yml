@@ -5,7 +5,16 @@ on:
     # 9:45 PM UTC = 12:45 AM Saudi time the next day.
     # New York: 5:45 PM during daylight-saving time, 4:45 PM during standard time.
     - cron: '45 21 * * 1-5'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      send_telegram_test:
+        description: 'Send a Telegram test message before the stock scan'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 permissions:
   contents: write
@@ -25,6 +34,26 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Send Telegram test message
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_telegram_test == 'true' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import sys
+          from signal_check import send_telegram_message
+
+          ok = send_telegram_message(
+              "🧪 Telegram test from stock-signals GitHub Actions.\n"
+              f"Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          )
+
+          if not ok:
+              sys.exit("Telegram test message failed.")
+          PY
 
       - name: Run signal check and build results page
         env:

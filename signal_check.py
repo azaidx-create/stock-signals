@@ -46,7 +46,7 @@ WATCHLIST = [
 
 STOP_LOSS_PCT = -10.0
 MAX_DISTANCE_ABOVE_SMA50_PCT = 5.0
-
+TELEGRAM_STATE_FILE = "data/telegram_alert_state.json"
 
 def _flatten_columns(df):
     if isinstance(df.columns, pd.MultiIndex):

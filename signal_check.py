@@ -235,15 +235,19 @@ def build_html(market_up, rows, checked_at, run_type, stats, latest_data_date):
   <div class="banner">{banner_text}</div>
 
   <div class="stats">
-    <div class="card"><div class="label">Stocks in watchlist</div><div class="value">{stats['watchlist']}</div></div>
-    <div class="card"><div class="label">Price data scanned</div><div class="value">{stats['price_scanned']}</div></div>
-    <div class="card"><div class="label">Passed fundamentals</div><div class="value">{stats['fundamentals_passed']}</div></div>
-    <div class="card"><div class="label">Rejected fundamentals</div><div class="value">{stats['fundamentals_rejected']}</div></div>
-    <div class="card"><div class="label">New golden crosses</div><div class="value">{stats['golden_crosses']}</div></div>
-    <div class="card"><div class="label">Buy signals</div><div class="value">{stats['buy']}</div></div>
-    <div class="card"><div class="label">Already in uptrend</div><div class="value">{stats['wait_uptrend']}</div></div>
-    <div class="card"><div class="label">No usable data</div><div class="value">{stats['no_data']}</div></div>
-  </div>
+  <div class="card"><div class="label">Stocks in watchlist</div><div class="value">{stats['watchlist']}</div></div>
+
+  <div class="card"><div class="label">Passed fundamentals</div><div class="value">{stats['fundamentals_passed']}</div></div>
+  <div class="card"><div class="label">Rejected fundamentals</div><div class="value">{stats['fundamentals_rejected']}</div></div>
+  <div class="card"><div class="label">Fundamentals unavailable</div><div class="value">{stats['fundamentals_unavailable']}</div></div>
+
+  <div class="card"><div class="label">Price data scanned</div><div class="value">{stats['price_scanned']}</div></div>
+  <div class="card"><div class="label">No usable data</div><div class="value">{stats['no_data']}</div></div>
+
+  <div class="card"><div class="label">New golden crosses</div><div class="value">{stats['golden_crosses']}</div></div>
+  <div class="card"><div class="label">Already in uptrend</div><div class="value">{stats['wait_uptrend']}</div></div>
+  <div class="card"><div class="label">Buy signals</div><div class="value">{stats['buy']}</div></div>
+</div>
 
   <div class="sub">S&amp;P 500 trend: <b>{'UPTREND' if market_up else 'DOWNTREND'}</b></div>
   <div class="table-wrap">

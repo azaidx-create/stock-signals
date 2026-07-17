@@ -103,31 +103,33 @@
   <h1>Signal Desk — Daily Results</h1>
 
   <div class="sub">
-    Generated: 2026-07-17 09:28 AM Saudi time
-    · Run type: <b>Scheduled daily scan</b>
+    Generated: 2026-07-17 02:41 PM Saudi time
+    · Run type: <b>push</b>
     · Latest market data:
     <b>2026-07-16</b>
   </div>
 
   <div class="banner">
-    17 buy signal(s) found today.
+    18 buy signal(s) found today.
   </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin:-6px 0 18px;">
-    <a
-      href="https://github.com/azaidx-create/stock-signals/actions/workflows/daily_check.yml"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="display:inline-block;color:#0a0d0c;background:#35e08a;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;text-decoration:none;"
+    <button
+      id="telegram-test-button"
+      type="button"
+      onclick="sendTelegramTest()"
+      
+      style="display:inline-block;color:#0a0d0c;background:#35e08a;border:0;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;"
     >
       Test Telegram alert
-    </a>
+    </button>
 
-    <span style="display:inline-block;color:#e7ebe6;background:#1b231f;border:1px solid #2d3832;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;">
-      Opens GitHub Actions — run workflow with send_telegram_test=true
+    <span
+      id="telegram-test-status"
+      style="display:inline-block;color:#e7ebe6;background:#1b231f;border:1px solid #2d3832;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;"
+    >
+      Press to send a test message now
     </span>
   </div>
-
-  <div class="stats">
 
   <div class="stats">
     <div class="card">
@@ -138,14 +140,14 @@
     <div class="card">
       <div class="label">Passed fundamentals</div>
       <div class="value">
-        112
+        114
       </div>
     </div>
 
     <div class="card">
       <div class="label">Rejected fundamentals</div>
       <div class="value">
-        63
+        62
       </div>
     </div>
 
@@ -154,13 +156,13 @@
         Fundamentals unavailable
       </div>
       <div class="value">
-        1
+        0
       </div>
     </div>
 
     <div class="card">
       <div class="label">Price data scanned</div>
-      <div class="value">110</div>
+      <div class="value">111</div>
     </div>
 
     <div class="card">
@@ -172,7 +174,7 @@
       <div class="label">
         Near 50-day average
       </div>
-      <div class="value">17</div>
+      <div class="value">18</div>
     </div>
 
     <div class="card">
@@ -184,7 +186,7 @@
 
     <div class="card">
       <div class="label">Buy signals</div>
-      <div class="value">17</div>
+      <div class="value">18</div>
     </div>
   </div>
 
@@ -2925,28 +2927,28 @@
             padding:12px 10px;
             border-bottom:1px solid #232a26;
           ">
-            —
+            $345.73
           </td>
 
           <td style="
             padding:12px 10px;
             border-bottom:1px solid #232a26;
           ">
-            <span style="color:#8a948d;">skipped — weak fundamentals</span>
+            <span style="background:#35e08a;color:#05130b;padding:6px 12px;border-radius:6px;font-weight:700;">BUY SIGNAL</span>
           </td>
 
           <td style="
             padding:12px 10px;
             border-bottom:1px solid #232a26;
           ">
-            —
+            4.10%
           </td>
 
           <td style="
             padding:12px 10px;
             border-bottom:1px solid #232a26;
           ">
-            —
+            <b style="color:#35e08a;">$345.73</b>
           </td>
 
           <td style="
@@ -2954,14 +2956,14 @@
             border-bottom:1px solid #232a26;
             color:#e0a835;
           ">
-            —
+            $311.16
           </td>
 
           <td style="
             padding:12px 10px;
             border-bottom:1px solid #232a26;
           ">
-            —
+            <b style="color:#4ba3ff;">$414.88</b>
           </td>
         </tr>
         
@@ -9557,6 +9559,62 @@
     Manual workflow runs can appear at any time and are
     labeled above.
   </footer>
+
+  <script>
+    const telegramBotToken = "8966668899:AAEM6K_uSQvyWzsiGzLea9ukwRO0Dbrioro";
+    const telegramChatId = "696829890";
+
+    async function sendTelegramTest() {
+      const button = document.getElementById(
+        "telegram-test-button"
+      );
+      const status = document.getElementById(
+        "telegram-test-status"
+      );
+
+      if (!telegramBotToken || !telegramChatId) {
+        status.textContent = "Telegram credentials are unavailable.";
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = "Sending Telegram test...";
+
+      const url =
+        "https://api.telegram.org/bot" +
+        telegramBotToken +
+        "/sendMessage";
+
+      const body = new URLSearchParams({
+        chat_id: telegramChatId,
+        text: "🧪 Telegram test from the Stock Signal Desk website."
+      });
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body: body.toString()
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          throw new Error(
+            result.description || "Telegram rejected the message."
+          );
+        }
+
+        status.textContent = "Test sent successfully — check Telegram.";
+      } catch (error) {
+        status.textContent = "Test failed: " + error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }
+  </script>
 
 </body>
 </html>

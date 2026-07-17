@@ -1,4 +1,23 @@
 {
-  "active_buy_tickers": [],
-  "updated_at": null
+  "active_buy_tickers": [
+    "AEP",
+    "AFL",
+    "ALGN",
+    "AMD",
+    "ANET",
+    "APD",
+    "APH",
+    "CB",
+    "DUK",
+    "EOG",
+    "EW",
+    "FAST",
+    "GE",
+    "KLAC",
+    "LIN",
+    "MDLZ",
+    "MO",
+    "NEE"
+  ],
+  "updated_at": "2026-07-17 02:41 PM Saudi time"
 }

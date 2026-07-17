@@ -53,6 +53,7 @@ for number, ticker in enumerate(WATCHLIST, 1):
     )
     signal = signal.shift(1).fillna(False)
     signal &= market_up.reindex(data.index).fillna(False).astype(bool)
+    entry_event = signal & ~signal.shift(1).fillna(False)
 
     in_position = False
     entry_price = None
@@ -60,7 +61,7 @@ for number, ticker in enumerate(WATCHLIST, 1):
 
     for dt, row in data.loc[data.index >= TEST_START].iterrows():
         if not in_position:
-            if bool(signal.loc[dt]):
+            if bool(entry_event.loc[dt]):
                 entry_price = float(row["Open"])
                 if not np.isfinite(entry_price) or entry_price <= 0:
                     continue

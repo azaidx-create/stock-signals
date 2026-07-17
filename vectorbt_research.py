@@ -196,7 +196,22 @@ def main():
             for target in [0.15, 0.20, 0.25]:
                 returns = []
                 for ticker, data in price_data.items():
-                    close = data["Close"]
+                    close = pd.Series(
+                        data["Close"].to_numpy(dtype=np.float64),
+                        index=data.index,
+                    )
+                    open_price = pd.Series(
+                        data["Open"].to_numpy(dtype=np.float64),
+                        index=data.index,
+                    )
+                    high = pd.Series(
+                        data["High"].to_numpy(dtype=np.float64),
+                        index=data.index,
+                    )
+                    low = pd.Series(
+                        data["Low"].to_numpy(dtype=np.float64),
+                        index=data.index,
+                    )
                     sma50 = close.rolling(50).mean()
                     sma200 = close.rolling(200).mean()
                     distance = (close - sma50) / sma50
@@ -208,15 +223,18 @@ def main():
                         & (sma50 > sma200)
                         & distance.between(0, max_distance)
                     )
-                    entries = (setup & ~setup.shift(1).fillna(False)).shift(1).fillna(False)
+                    entries = (
+                        setup.astype(bool)
+                        & ~setup.shift(1).fillna(False).astype(bool)
+                    ).shift(1).fillna(False).astype(bool)
 
                     portfolio = vbt.Portfolio.from_signals(
                         close=close,
                         entries=entries,
                         exits=None,
-                        open=data["Open"],
-                        high=data["High"],
-                        low=data["Low"],
+                        open=open_price,
+                        high=high,
+                        low=low,
                         sl_stop=stop,
                         tp_stop=target,
                         fees=FEES,

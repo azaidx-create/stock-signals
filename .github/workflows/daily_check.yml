@@ -1,6 +1,12 @@
 name: Daily Stock Signal Check
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - signal_check.py
+      - .github/workflows/daily_check.yml
   schedule:
     # 9:45 PM UTC = 12:45 AM Saudi time the next day.
     # New York: 5:45 PM during daylight-saving time, 4:45 PM during standard time.

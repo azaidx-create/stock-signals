@@ -1,0 +1,32 @@
+{
+  "test_start": "2020-01-01",
+  "data_through": "2026-07-16",
+  "watchlist_size": 176,
+  "missing_tickers": [
+    "MMC",
+    "BK",
+    "DFS"
+  ],
+  "all": {
+    "trades_including_open": 2047,
+    "closed_trades": 1966,
+    "target_wins": 879,
+    "stop_losses": 1087,
+    "closed_win_rate_pct": 44.71007121057986,
+    "mean_trade_return_pct": 3.495632284142816,
+    "median_trade_return_pct": -9.999999999999986,
+    "mean_holding_days": 99.81094284318515,
+    "open_positions": 81
+  },
+  "since_2025": {
+    "trades_including_open": 437,
+    "closed_trades": 358,
+    "target_wins": 146,
+    "stop_losses": 212,
+    "closed_win_rate_pct": 40.78212290502793,
+    "mean_trade_return_pct": 2.8432894331564524,
+    "median_trade_return_pct": -3.6566347050077552,
+    "mean_holding_days": 78.8787185354691,
+    "open_positions": 79
+  }
+}

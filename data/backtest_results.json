@@ -8,14 +8,14 @@
     "DFS"
   ],
   "all": {
-    "trades_including_open": 2047,
-    "closed_trades": 1966,
-    "target_wins": 879,
+    "trades_including_open": 2048,
+    "closed_trades": 1967,
+    "target_wins": 880,
     "stop_losses": 1087,
-    "closed_win_rate_pct": 44.71007121057986,
-    "mean_trade_return_pct": 3.4956322669383884,
+    "closed_win_rate_pct": 44.73817996949669,
+    "mean_trade_return_pct": 3.503691054228538,
     "median_trade_return_pct": -9.999999999999986,
-    "mean_holding_days": 99.81094284318515,
+    "mean_holding_days": 99.73193359375,
     "open_positions": 81
   },
   "since_2025": {
@@ -24,7 +24,7 @@
     "target_wins": 146,
     "stop_losses": 212,
     "closed_win_rate_pct": 40.78212290502793,
-    "mean_trade_return_pct": 2.843289329570867,
+    "mean_trade_return_pct": 2.843289395102137,
     "median_trade_return_pct": -3.6566347050077552,
     "mean_holding_days": 78.8787185354691,
     "open_positions": 79

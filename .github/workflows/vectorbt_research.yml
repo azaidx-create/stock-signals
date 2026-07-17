@@ -1,0 +1,48 @@
+name: VectorBT Strategy Research
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - vectorbt_research.py
+      - requirements-research.txt
+      - .github/workflows/vectorbt_research.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache SimFin downloads
+        uses: actions/cache@v4
+        with:
+          path: .simfin_data
+          key: simfin-us-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            simfin-us-${{ runner.os }}-
+
+      - name: Install research dependencies
+        run: pip install -r requirements-research.txt
+
+      - name: Run VectorBT research
+        env:
+          SIMFIN_API_KEY: ${{ secrets.SIMFIN_API_KEY }}
+        run: python vectorbt_research.py
+
+      - name: Upload research results
+        uses: actions/upload-artifact@v4
+        with:
+          name: vectorbt-results
+          path: data/vectorbt_results.json

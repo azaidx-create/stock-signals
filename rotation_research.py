@@ -141,6 +141,16 @@ def main():
     prices = pd.concat({ticker: frame["Close"] for ticker, frame in covered.items()}, axis=1).sort_index().ffill()
     test_start = date.today() - timedelta(days=365 * 2)
     train_end = test_start
+    first_week = prices.index.min().to_period("W-FRI").start_time.date()
+    windows = []
+    window_start = pd.Timestamp(first_week)
+    while window_start + pd.DateOffset(years=2) <= pd.Timestamp(date.today()):
+        window_end = window_start + pd.DateOffset(years=2)
+        metrics = run(prices, window_start.date(), window_end.date())
+        metrics["period_start"] = str(window_start.date())
+        metrics["period_end"] = str(window_end.date())
+        windows.append(metrics)
+        window_start = window_end
     result = {
         "generated": str(date.today()),
         "covered": sorted(covered),
@@ -148,6 +158,19 @@ def main():
         "fees_each_side_pct": FEE_EACH_SIDE * 100,
         "training": run(prices, START, train_end),
         "out_of_sample": run(prices, test_start, date.today()),
+        "rolling_two_year_windows": windows,
+        "rolling_summary": {
+            "windows_tested": len(windows),
+            "windows_beating_spy": sum(
+                row.get("annualized_return_pct", -999)
+                > row.get("spy_annualized_return_pct", 999)
+                for row in windows
+            ),
+            "windows_with_positive_return": sum(
+                row.get("annualized_return_pct", -999) > 0
+                for row in windows
+            ),
+        },
         "gate": "Out-of-sample strategy must beat SPY annualized return, have lower drawdown, and positive Sharpe.",
         "limitation": "This is FinRL-X-inspired, not an exact reproduction; ETF survivorship and data-source differences remain.",
     }

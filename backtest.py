@@ -1,7 +1,5 @@
 from datetime import date
 import json
-import time
-import urllib.request
 
 import numpy as np
 import pandas as pd
@@ -11,166 +9,8 @@ from signal_check import WATCHLIST
 
 
 START_DOWNLOAD = "2018-01-01"
-TEST_START = pd.Timestamp(date.today()) - pd.DateOffset(months=6)
+TEST_START = pd.Timestamp("2020-01-01")
 END = (date.today() + pd.Timedelta(days=1)).isoformat()
-SEC_USER_AGENT = (
-    "stock-signals-backtest "
-    "azaidx-create@users.noreply.github.com"
-)
-SEC_FORMS = {"10-Q", "10-K", "10-Q/A", "10-K/A"}
-
-
-def get_json(url):
-    request = urllib.request.Request(
-        url,
-        headers={"User-Agent": SEC_USER_AGENT},
-    )
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return json.load(response)
-
-
-def load_sec_ticker_map():
-    raw = get_json("https://www.sec.gov/files/company_tickers.json")
-    return {
-        item["ticker"].upper().replace(".", "-"): int(item["cik_str"])
-        for item in raw.values()
-    }
-
-
-def load_company_facts(cik):
-    time.sleep(0.12)
-    try:
-        return get_json(
-            "https://data.sec.gov/api/xbrl/companyfacts/"
-            f"CIK{cik:010d}.json"
-        )
-    except Exception as exc:
-        print(f"SEC_ERROR CIK {cik}: {exc}")
-        return None
-
-
-def concept_values(company_facts, tags, unit="USD"):
-    facts = company_facts.get("facts", {}).get("us-gaap", {})
-    values = []
-    for tag in tags:
-        units = facts.get(tag, {}).get("units", {})
-        values.extend(units.get(unit, []))
-    return values
-
-
-def available_values(values, as_of):
-    selected = []
-    for item in values:
-        if item.get("form") not in SEC_FORMS:
-            continue
-        try:
-            filed = pd.Timestamp(item["filed"])
-            end = pd.Timestamp(item["end"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        if filed <= as_of and end <= as_of and np.isfinite(item.get("val", np.nan)):
-            selected.append({**item, "_filed": filed, "_end": end})
-    return selected
-
-
-def latest_instant(company_facts, tags, as_of):
-    values = available_values(concept_values(company_facts, tags), as_of)
-    if not values:
-        return None
-    item = max(values, key=lambda x: (x["_end"], x["_filed"]))
-    return float(item["val"]), item["_end"]
-
-
-def quarterly_series(company_facts, tags, as_of):
-    values = available_values(concept_values(company_facts, tags), as_of)
-    by_end = {}
-    for item in values:
-        if "start" not in item:
-            continue
-        start = pd.Timestamp(item["start"])
-        days = (item["_end"] - start).days
-        if not 70 <= days <= 110:
-            continue
-        previous = by_end.get(item["_end"])
-        if previous is None or item["_filed"] > previous["_filed"]:
-            by_end[item["_end"]] = item
-    return sorted(by_end.values(), key=lambda x: x["_end"])
-
-
-def historical_fundamentals_pass(company_facts, as_of):
-    """Approximate the live Yahoo filter with point-in-time SEC facts."""
-    if not company_facts:
-        return True, "unavailable"
-
-    revenue = quarterly_series(
-        company_facts,
-        [
-            "RevenueFromContractWithCustomerExcludingAssessedTax",
-            "Revenues",
-            "SalesRevenueNet",
-        ],
-        as_of,
-    )
-    income = quarterly_series(
-        company_facts,
-        ["NetIncomeLoss", "ProfitLoss"],
-        as_of,
-    )
-
-    revenue_by_end = {item["_end"]: float(item["val"]) for item in revenue}
-    income_by_end = {item["_end"]: float(item["val"]) for item in income}
-    common_ends = sorted(set(revenue_by_end) & set(income_by_end))
-
-    if common_ends:
-        latest_end = common_ends[-1]
-        latest_revenue = revenue_by_end[latest_end]
-        latest_income = income_by_end[latest_end]
-        if latest_revenue > 0 and latest_income / latest_revenue < 0:
-            return False, "negative_profit_margin"
-
-        prior_candidates = [
-            end for end in common_ends
-            if 330 <= (latest_end - end).days <= 400
-        ]
-        if prior_candidates:
-            prior_income = income_by_end[prior_candidates[-1]]
-            if latest_income < prior_income:
-                return False, "negative_earnings_growth"
-
-    equity = latest_instant(
-        company_facts,
-        [
-            "StockholdersEquity",
-            "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",
-        ],
-        as_of,
-    )
-    debt_current = latest_instant(
-        company_facts,
-        [
-            "LongTermDebtCurrent",
-            "LongTermDebtAndFinanceLeaseObligationsCurrent",
-            "ShortTermBorrowings",
-        ],
-        as_of,
-    )
-    debt_noncurrent = latest_instant(
-        company_facts,
-        [
-            "LongTermDebtNoncurrent",
-            "LongTermDebtAndFinanceLeaseObligationsNoncurrent",
-        ],
-        as_of,
-    )
-
-    if equity and equity[0] > 0 and (debt_current or debt_noncurrent):
-        total_debt = (debt_current[0] if debt_current else 0) + (
-            debt_noncurrent[0] if debt_noncurrent else 0
-        )
-        if total_debt / equity[0] * 100 > 200:
-            return False, "debt_to_equity_above_200"
-
-    return True, "passed"
 
 
 def download_one(ticker):
@@ -194,18 +34,9 @@ def download_one(ticker):
 spy = download_one("^GSPC")
 spy["market_sma200"] = spy["Close"].rolling(200).mean()
 market_up = (spy["Close"] > spy["market_sma200"]).shift(1)
-sec_ticker_map = load_sec_ticker_map()
 
 trades = []
 missing = []
-fundamental_stats = {
-    "candidates": 0,
-    "passed": 0,
-    "unavailable": 0,
-    "negative_profit_margin": 0,
-    "negative_earnings_growth": 0,
-    "debt_to_equity_above_200": 0,
-}
 
 for number, ticker in enumerate(WATCHLIST, 1):
     data = download_one(ticker)
@@ -227,26 +58,10 @@ for number, ticker in enumerate(WATCHLIST, 1):
     in_position = False
     entry_price = None
     entry_date = None
-    company_facts = None
-    company_facts_loaded = False
 
     for dt, row in data.loc[data.index >= TEST_START].iterrows():
         if not in_position:
             if bool(entry_event.loc[dt]):
-                fundamental_stats["candidates"] += 1
-                if not company_facts_loaded:
-                    cik = sec_ticker_map.get(ticker)
-                    company_facts = load_company_facts(cik) if cik else None
-                    company_facts_loaded = True
-
-                fund_ok, fund_reason = historical_fundamentals_pass(
-                    company_facts,
-                    dt,
-                )
-                fundamental_stats[fund_reason] += 1
-                if not fund_ok:
-                    continue
-
                 entry_price = float(row["Open"])
                 if not np.isfinite(entry_price) or entry_price <= 0:
                     continue
@@ -299,7 +114,7 @@ for number, ticker in enumerate(WATCHLIST, 1):
 
 df = pd.DataFrame(trades)
 closed = df[df["closed"]].copy()
-recent = df[pd.to_datetime(df["entry_date"]) >= TEST_START]
+recent = df[pd.to_datetime(df["entry_date"]) >= pd.Timestamp("2025-01-01")]
 
 def summarize(frame):
     closed_frame = frame[frame["closed"]]
@@ -323,15 +138,8 @@ result = {
     "data_through": str(spy.index[-1].date()),
     "watchlist_size": len(WATCHLIST),
     "missing_tickers": missing,
-    "fundamental_method": (
-        "Point-in-time SEC filings: latest reported quarterly net margin, "
-        "quarterly net-income growth versus the comparable prior-year "
-        "quarter, and reported debt/equity. Missing fields pass, matching "
-        "the live scanner's behavior."
-    ),
-    "fundamental_stats": fundamental_stats,
     "all": summarize(df),
-    "six_months": summarize(recent),
+    "since_2025": summarize(recent),
 }
 
 print("RESULT_JSON")

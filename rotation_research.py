@@ -135,6 +135,61 @@ def run(prices, start_date, end_date):
     }
 
 
+def run_family(prices, start_date, end_date, family):
+    """Test deliberately simple, parameter-light ETF rotation families."""
+    close = prices
+    spy = close["SPY"]
+    assets = [ticker for ticker in ["SPY", "QQQ", "GLD", "TLT"] if ticker in close]
+    weekly = weekly_returns(close)
+    spy_weekly = weekly["SPY"]
+    weekly_close = close.resample("W-FRI").last()
+    equity = benchmark = 1.0
+    rows = []
+    for i in range(252, len(weekly.index) - 1):
+        signal_week, trade_week = weekly.index[i], weekly.index[i + 1]
+        if signal_week < pd.Timestamp(start_date) or signal_week >= pd.Timestamp(end_date):
+            continue
+        momentum_252 = weekly_close.pct_change(52).loc[signal_week, assets].dropna()
+        momentum_63 = weekly_close.pct_change(13).loc[signal_week, assets].dropna()
+        if family == "dual_momentum":
+            positive = momentum_252[momentum_252 > 0]
+            selected = positive.idxmax() if not positive.empty else "SHY"
+        elif family == "trend_strength":
+            eligible = [ticker for ticker in assets if weekly_close[ticker].loc[signal_week] > weekly_close[ticker].rolling(40).mean().loc[signal_week]]
+            selected = momentum_63[eligible].idxmax() if eligible and not momentum_63[eligible].dropna().empty else "SHY"
+        elif family == "low_volatility":
+            positive = momentum_63[momentum_63 > 0]
+            if positive.empty:
+                selected = "SHY"
+            else:
+                vol = weekly[positive.index].loc[:signal_week].tail(13).std()
+                selected = vol.idxmin()
+        else:
+            raise ValueError(f"Unknown family: {family}")
+        if selected not in weekly.columns:
+            selected = "SHY"
+        ret = float(weekly.loc[trade_week, selected]) - FEE_EACH_SIDE * 2
+        spy_ret = float(spy_weekly.get(trade_week, 0.0)) - FEE_EACH_SIDE * 2
+        equity *= 1 + ret
+        benchmark *= 1 + spy_ret
+        rows.append({"return": ret, "spy_return": spy_ret})
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return {"weeks": 0}
+    returns, spy_returns = frame["return"], frame["spy_return"]
+    curve, spy_curve = (1 + returns).cumprod(), (1 + spy_returns).cumprod()
+    years = max((pd.Timestamp(end_date) - pd.Timestamp(start_date)).days / 365.25, 1 / 365.25)
+    return {
+        "weeks": int(len(frame)),
+        "annualized_return_pct": float((equity ** (1 / years) - 1) * 100),
+        "spy_annualized_return_pct": float((benchmark ** (1 / years) - 1) * 100),
+        "max_drawdown_pct": float((curve / curve.cummax() - 1).min() * 100),
+        "spy_max_drawdown_pct": float((spy_curve / spy_curve.cummax() - 1).min() * 100),
+        "sharpe_annualized": float(returns.mean() / returns.std() * np.sqrt(52)) if returns.std() else None,
+        "winning_weeks_pct": float((returns > 0).mean() * 100),
+    }
+
+
 def main():
     frames = {ticker: download(ticker) for ticker in ALL_TICKERS}
     covered = {ticker: frame for ticker, frame in frames.items() if len(frame) > 500}
@@ -171,9 +226,21 @@ def main():
                 for row in windows
             ),
         },
+        "simple_families": {},
         "gate": "Out-of-sample strategy must beat SPY annualized return, have lower drawdown, and positive Sharpe.",
         "limitation": "This is FinRL-X-inspired, not an exact reproduction; ETF survivorship and data-source differences remain.",
     }
+    for family in ["dual_momentum", "trend_strength", "low_volatility"]:
+        family_windows = []
+        window_start = pd.Timestamp(first_week)
+        while window_start + pd.DateOffset(years=2) <= pd.Timestamp(date.today()):
+            window_end = window_start + pd.DateOffset(years=2)
+            metrics = run_family(prices, window_start.date(), window_end.date(), family)
+            metrics["period_start"] = str(window_start.date())
+            metrics["period_end"] = str(window_end.date())
+            family_windows.append(metrics)
+            window_start = window_end
+        result["simple_families"][family] = family_windows
     RESULT_FILE.parent.mkdir(parents=True, exist_ok=True)
     RESULT_FILE.write_text(json.dumps(result, indent=2, default=str) + "\n")
     print(json.dumps(result, indent=2, default=str))

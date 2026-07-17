@@ -50,7 +50,7 @@ def weekly_returns(prices):
 
 
 def run(prices, start_date, end_date):
-    close = prices["Close"]
+    close = prices
     spy = close["SPY"]
     vix = close["^VIX"]
     weekly = weekly_returns(close)

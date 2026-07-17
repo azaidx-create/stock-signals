@@ -1,0 +1,250 @@
+{
+  "start": "2026-01-17",
+  "method": "Point-in-time SEC quarterly fundamentals",
+  "sample_size": 29,
+  "tickers": {
+    "AAPL": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "ABT": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      }
+    ],
+    "AMD": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "APD": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "BA": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_profit_margin"
+      }
+    ],
+    "BIIB": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "BRK-B": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "CB": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "CDNS": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "COST": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "ARTW": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      },
+      {
+        "date": "2026-07-15",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      }
+    ],
+    "ARW": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "ASB": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "ATRO": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_profit_margin"
+      },
+      {
+        "date": "2026-02-26",
+        "pass": false,
+        "reason": "debt_to_equity_above_200"
+      }
+    ],
+    "ALOT": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "WW": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_profit_margin"
+      }
+    ],
+    "WDFC": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      },
+      {
+        "date": "2026-07-09",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "WMK": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      },
+      {
+        "date": "2026-05-07",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "MSN": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_profit_margin"
+      }
+    ],
+    "NPKI": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "NL": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_profit_margin"
+      },
+      {
+        "date": "2026-05-06",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "KFY": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "KEX": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "KOSS": [
+      {
+        "date": "2026-01-17",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "CTO": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      },
+      {
+        "date": "2026-04-28",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "CIA": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      },
+      {
+        "date": "2026-03-12",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "MGRC": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      }
+    ],
+    "UMH": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_earnings_growth"
+      },
+      {
+        "date": "2026-04-30",
+        "pass": true,
+        "reason": "passed"
+      }
+    ],
+    "ANIX": [
+      {
+        "date": "2026-01-17",
+        "pass": false,
+        "reason": "negative_profit_margin"
+      }
+    ]
+  }
+}

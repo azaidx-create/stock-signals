@@ -309,6 +309,8 @@ def build_html(
     run_type,
     stats,
     latest_data_date,
+    telegram_bot_token="",
+    telegram_chat_id="",
 ):
     buy_count = stats["buy"]
 
@@ -455,6 +457,17 @@ def build_html(
         </tr>
         """
 
+    telegram_bot_token_js = json.dumps(
+        telegram_bot_token
+    )
+    telegram_chat_id_js = json.dumps(
+        telegram_chat_id
+    )
+    telegram_test_disabled = (
+        "" if telegram_bot_token and telegram_chat_id
+        else "disabled"
+    )
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 
@@ -570,17 +583,21 @@ def build_html(
     {banner_text}
   </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin:-6px 0 18px;">
-    <a
-      href="https://github.com/azaidx-create/stock-signals/actions/workflows/daily_check.yml"
-      target="_blank"
-      rel="noopener noreferrer"
-      style="display:inline-block;color:#0a0d0c;background:#35e08a;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;text-decoration:none;"
+    <button
+      id="telegram-test-button"
+      type="button"
+      onclick="sendTelegramTest()"
+      {telegram_test_disabled}
+      style="display:inline-block;color:#0a0d0c;background:#35e08a;border:0;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;"
     >
       Test Telegram alert
-    </a>
+    </button>
 
-    <span style="display:inline-block;color:#e7ebe6;background:#1b231f;border:1px solid #2d3832;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;">
-      Opens GitHub Actions — run workflow with send_telegram_test=true
+    <span
+      id="telegram-test-status"
+      style="display:inline-block;color:#e7ebe6;background:#1b231f;border:1px solid #2d3832;border-radius:999px;padding:10px 14px;font-size:13px;font-weight:800;"
+    >
+      {'Press to send a test message now' if telegram_bot_token and telegram_chat_id else 'Telegram credentials unavailable — run the GitHub workflow once'}
     </span>
   </div>
 
@@ -684,6 +701,62 @@ def build_html(
     Manual workflow runs can appear at any time and are
     labeled above.
   </footer>
+
+  <script>
+    const telegramBotToken = {telegram_bot_token_js};
+    const telegramChatId = {telegram_chat_id_js};
+
+    async function sendTelegramTest() {{
+      const button = document.getElementById(
+        "telegram-test-button"
+      );
+      const status = document.getElementById(
+        "telegram-test-status"
+      );
+
+      if (!telegramBotToken || !telegramChatId) {{
+        status.textContent = "Telegram credentials are unavailable.";
+        return;
+      }}
+
+      button.disabled = true;
+      status.textContent = "Sending Telegram test...";
+
+      const url =
+        "https://api.telegram.org/bot" +
+        telegramBotToken +
+        "/sendMessage";
+
+      const body = new URLSearchParams({{
+        chat_id: telegramChatId,
+        text: "🧪 Telegram test from the Stock Signal Desk website."
+      }});
+
+      try {{
+        const response = await fetch(url, {{
+          method: "POST",
+          headers: {{
+            "Content-Type":
+              "application/x-www-form-urlencoded;charset=UTF-8"
+          }},
+          body: body.toString()
+        }});
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {{
+          throw new Error(
+            result.description || "Telegram rejected the message."
+          );
+        }}
+
+        status.textContent = "Test sent successfully — check Telegram.";
+      }} catch (error) {{
+        status.textContent = "Test failed: " + error.message;
+      }} finally {{
+        button.disabled = false;
+      }}
+    }}
+  </script>
 
 </body>
 </html>
@@ -826,6 +899,14 @@ def main():
         run_type=run_type,
         stats=stats,
         latest_data_date=latest_data_date,
+        telegram_bot_token=os.environ.get(
+            "TELEGRAM_BOT_TOKEN",
+            "",
+        ),
+        telegram_chat_id=os.environ.get(
+            "TELEGRAM_CHAT_ID",
+            "",
+        ),
     )
 
     os.makedirs(

@@ -46,6 +46,7 @@ WATCHLIST = [
 
 STOP_LOSS_PCT = -10.0
 MAX_DISTANCE_ABOVE_SMA50_PCT = 5.0
+TELEGRAM_STATE_FILE = "data/telegram_alert_state.json"
 
 
 def _flatten_columns(df):
@@ -101,13 +102,17 @@ def get_market_uptrend():
 
 
 def check_ticker(ticker):
-    data = yf.download(
-        ticker,
-        period="2y",
-        interval="1d",
-        progress=False,
-        auto_adjust=True,
-    )
+    try:
+        data = yf.download(
+            ticker,
+            period="2y",
+            interval="1d",
+            progress=False,
+            auto_adjust=True,
+        )
+    except Exception as error:
+        print(f"Price download failed for {ticker}: {error}")
+        return None
 
     data = _flatten_columns(data)
 
@@ -120,6 +125,9 @@ def check_ticker(ticker):
     price = float(data["Close"].iloc[-1])
     sma50_today = float(data["SMA50"].iloc[-1])
     sma200_today = float(data["SMA200"].iloc[-1])
+
+    if not np.isfinite([price, sma50_today, sma200_today]).all():
+        return None
 
     in_uptrend = sma50_today > sma200_today
 
@@ -251,6 +259,47 @@ def build_telegram_message(buy_rows, checked_at):
     )
 
     return "\n".join(lines)
+
+
+def load_telegram_state():
+    """Load tickers that were BUY signals in the previous scan."""
+
+    try:
+        with open(
+            TELEGRAM_STATE_FILE,
+            "r",
+            encoding="utf-8",
+        ) as file:
+            state = json.load(file)
+    except FileNotFoundError:
+        return set()
+    except (OSError, json.JSONDecodeError) as error:
+        print(f"Telegram state could not be loaded: {error}")
+        return set()
+
+    return set(state.get("active_buy_tickers", []))
+
+
+def save_telegram_state(active_buy_tickers, checked_at):
+    """Save current BUY tickers so repeated alerts are suppressed."""
+
+    directory = os.path.dirname(TELEGRAM_STATE_FILE)
+
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+
+    state = {
+        "active_buy_tickers": sorted(active_buy_tickers),
+        "updated_at": checked_at,
+    }
+
+    with open(
+        TELEGRAM_STATE_FILE,
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(state, file, indent=2)
+        file.write("\n")
 
 
 def build_html(
@@ -536,8 +585,6 @@ def build_html(
   </div>
 
   <div class="stats">
-
-  <div class="stats">
     <div class="card">
       <div class="label">Stocks in watchlist</div>
       <div class="value">{stats['watchlist']}</div>
@@ -807,18 +854,42 @@ def main():
         if row["status"] == "buy"
     ]
 
-    if buy_rows:
+    previous_buy_tickers = load_telegram_state()
+    current_buy_tickers = {
+        row["ticker"]
+        for row in buy_rows
+    }
+    new_buy_rows = [
+        row
+        for row in buy_rows
+        if row["ticker"] not in previous_buy_tickers
+    ]
+
+    state_can_be_saved = True
+
+    if new_buy_rows:
         message = build_telegram_message(
-            buy_rows,
+            new_buy_rows,
             checked_at,
         )
 
-        send_telegram_message(message)
+        state_can_be_saved = send_telegram_message(message)
 
     else:
         print(
-            "No BUY signals found. "
+            "No new BUY signals found. "
             "No Telegram notification sent."
+        )
+
+    if state_can_be_saved:
+        save_telegram_state(
+            current_buy_tickers,
+            checked_at,
+        )
+    else:
+        print(
+            "Telegram state was not updated, so the alert "
+            "will be retried on the next scan."
         )
 
 

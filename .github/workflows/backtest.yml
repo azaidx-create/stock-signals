@@ -1,0 +1,48 @@
+name: Stock Strategy Backtest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - backtest.py
+      - .github/workflows/backtest.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run historical backtest
+        run: python backtest.py
+
+      - name: Save backtest results
+        run: |
+          git config user.name "signal-bot"
+          git config user.email "signal-bot@users.noreply.github.com"
+          git add data/backtest_results.json
+
+          if git diff --staged --quiet; then
+            echo "No backtest changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Update strategy backtest results"
+          git pull --rebase origin main
+          git push origin main

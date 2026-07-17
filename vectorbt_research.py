@@ -136,11 +136,17 @@ def download_prices(ticker, start):
 def fundamental_mask(ticker, index, fundamentals):
     rows = fundamentals[fundamentals[TICKER] == ticker][
         ["Known Date", "Fundamental Pass"]
-    ].sort_values("Known Date")
+    ].copy()
+    rows["Known Date"] = pd.to_datetime(
+        rows["Known Date"]
+    ).astype("datetime64[ns]")
+    rows.sort_values("Known Date", inplace=True)
     if rows.empty:
         return pd.Series(True, index=index)
 
-    daily = pd.DataFrame({"Date": pd.DatetimeIndex(index)})
+    daily = pd.DataFrame({
+        "Date": pd.to_datetime(pd.DatetimeIndex(index)).astype("datetime64[ns]")
+    })
     known = pd.merge_asof(
         daily.sort_values("Date"),
         rows.rename(columns={"Known Date": "Date"}),

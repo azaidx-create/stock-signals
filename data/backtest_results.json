@@ -13,7 +13,7 @@
     "target_wins": 879,
     "stop_losses": 1087,
     "closed_win_rate_pct": 44.71007121057986,
-    "mean_trade_return_pct": 3.495632284142816,
+    "mean_trade_return_pct": 3.4956322669383884,
     "median_trade_return_pct": -9.999999999999986,
     "mean_holding_days": 99.81094284318515,
     "open_positions": 81
@@ -24,7 +24,7 @@
     "target_wins": 146,
     "stop_losses": 212,
     "closed_win_rate_pct": 40.78212290502793,
-    "mean_trade_return_pct": 2.8432894331564524,
+    "mean_trade_return_pct": 2.843289329570867,
     "median_trade_return_pct": -3.6566347050077552,
     "mean_holding_days": 78.8787185354691,
     "open_positions": 79

@@ -42,6 +42,9 @@ STRATEGIES = (
     Strategy("rsi2_balanced", "rsi2", 2.5, 3.0, 3),
     Strategy("rsi2_fast", "rsi2", 1.8, 2.8, 2),
     Strategy("three_day_pullback", "three_day", 2.5, 3.0, 3),
+    Strategy("strict_rsi2", "strict_rsi2", 1.5, 2.0, 2),
+    Strategy("ranked_pullback", "ranked_pullback", 2.0, 2.5, 3),
+    Strategy("ranked_momentum", "ranked_momentum", 3.0, 2.5, 5),
 )
 
 
@@ -78,6 +81,7 @@ def enrich(frame: pd.DataFrame, spy: pd.DataFrame) -> pd.DataFrame:
     data["sma200"] = close.rolling(200).mean()
     data["rsi2"] = rsi(close, 2)
     data["return3"] = close.pct_change(3)
+    data["return21"] = close.pct_change(21)
     data["return63"] = close.pct_change(63)
     data["avg_dollar_volume"] = (close * data["Volume"]).rolling(20).mean()
     spy_close = spy["Close"].reindex(data.index).ffill()
@@ -104,6 +108,19 @@ def candidates(ticker: str, data: pd.DataFrame, setup: str) -> pd.DataFrame:
         score = -100 * data["return3"] + 100 * (
             data["return63"] - data["spy_return63"]
         )
+    elif setup == "strict_rsi2":
+        selected = common & (data["rsi2"] <= 5) & (data["return3"] <= -0.02)
+        score = -data["rsi2"] + 100 * (
+            data["return63"] - data["spy_return63"]
+        )
+    elif setup == "ranked_pullback":
+        selected = common & (data["rsi2"] <= 15) & (data["return3"] <= -0.01)
+        score = -100 * data["return3"] + 100 * (
+            data["return63"] - data["spy_return63"]
+        )
+    elif setup == "ranked_momentum":
+        selected = common & (data["return21"] > 0) & (data["return3"] > -0.015)
+        score = 100 * (data["return63"] - data["spy_return63"]) + 50 * data["return21"]
     else:
         raise ValueError(f"Unknown setup: {setup}")
 

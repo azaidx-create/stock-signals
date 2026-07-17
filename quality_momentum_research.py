@@ -47,7 +47,8 @@ def run(close, fundamentals, start, end):
     for i in range(len(months) - 1):
         signal_date, next_date = months[i], months[i + 1]
         spy_sma = close["SPY"].rolling(200).mean().loc[:signal_date].iloc[-1]
-        market_ok = float(close["SPY"].loc[signal_date]) > float(spy_sma)
+        market_price = close["SPY"].asof(signal_date)
+        market_ok = float(market_price) > float(spy_sma)
         if market_ok:
             rows = []
             for ticker in WATCHLIST:

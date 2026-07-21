@@ -1,9 +1,8 @@
 {
   "active_buy_tickers": [
-    "AEP",
     "ALGN",
     "ALLY",
-    "ANET",
+    "AMD",
     "APD",
     "APH",
     "BIIB",
@@ -11,11 +10,13 @@
     "EOG",
     "GE",
     "KO",
-    "MDLZ",
-    "MO",
+    "MRK",
     "NEE",
+    "PGR",
+    "PLD",
     "SBUX",
-    "SO"
+    "TFC",
+    "VRTX"
   ],
-  "updated_at": "2026-07-18 08:53 AM Saudi time"
+  "updated_at": "2026-07-21 10:42 AM Saudi time"
 }

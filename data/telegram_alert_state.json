@@ -1,25 +1,28 @@
 {
   "active_buy_tickers": [
-    "AEP",
     "ALGN",
-    "ANET",
     "APD",
     "BIIB",
+    "BRK-B",
+    "CI",
     "COST",
     "DUK",
     "DXCM",
-    "EOG",
+    "EMR",
+    "FAST",
     "FTNT",
-    "KEY",
-    "MDLZ",
+    "GE",
+    "HON",
     "MO",
     "NEE",
     "NTRS",
-    "PG",
+    "PANW",
     "PGR",
     "PLD",
     "SBUX",
-    "TJX"
+    "TFC",
+    "TJX",
+    "VRTX"
   ],
-  "updated_at": "2026-07-29 11:02 AM Saudi time"
+  "updated_at": "2026-07-30 10:41 AM Saudi time"
 }

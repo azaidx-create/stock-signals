@@ -1,4 +1,22 @@
 {
-  "active_buy_tickers": [],
-  "updated_at": "2026-08-04 10:48 AM Saudi time"
+  "active_buy_tickers": [
+    "ABBV",
+    "AFL",
+    "BRK-B",
+    "CSCO",
+    "CSX",
+    "EOG",
+    "GE",
+    "KO",
+    "MDLZ",
+    "PNC",
+    "RF",
+    "SBUX",
+    "TFC",
+    "TROW",
+    "UNP",
+    "V",
+    "WFC"
+  ],
+  "updated_at": "2026-08-12 03:07 AM Saudi time"
 }

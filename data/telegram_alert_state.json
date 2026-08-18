@@ -1,25 +1,24 @@
 {
   "active_buy_tickers": [
-    "ABBV",
-    "ALL",
-    "AVGO",
+    "AAPL",
+    "AFL",
+    "AMZN",
+    "BRK-B",
     "C",
+    "CFG",
     "CSX",
-    "CTAS",
     "FTNT",
     "GE",
     "HUM",
-    "KEY",
-    "KO",
-    "LRCX",
     "MDLZ",
     "MTB",
     "PNC",
     "RF",
     "SBUX",
     "TFC",
+    "USB",
     "V",
     "WFC"
   ],
-  "updated_at": "2026-08-18 01:02 AM Saudi time"
+  "updated_at": "2026-08-19 01:01 AM Saudi time"
 }

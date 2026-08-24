@@ -1,21 +1,25 @@
 {
   "active_buy_tickers": [
+    "AAPL",
     "ALL",
     "AMZN",
     "BAC",
+    "BRK-B",
+    "COF",
     "CSX",
     "GD",
+    "HUM",
     "JPM",
     "MET",
-    "MU",
     "NTRS",
     "NVDA",
+    "PANW",
     "PGR",
+    "PLD",
     "PRU",
     "RTX",
     "SBUX",
-    "SYF",
-    "TRV"
+    "USB"
   ],
-  "updated_at": "2026-08-22 01:02 AM Saudi time"
+  "updated_at": "2026-08-25 01:04 AM Saudi time"
 }

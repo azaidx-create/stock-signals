@@ -4,14 +4,10 @@
     "ABBV",
     "ALL",
     "AMZN",
-    "ANET",
-    "APH",
     "BAC",
-    "BKNG",
     "BLK",
     "BRK-B",
     "C",
-    "CI",
     "COF",
     "CTAS",
     "EMR",
@@ -20,17 +16,19 @@
     "HUM",
     "JPM",
     "KO",
-    "MU",
+    "MET",
+    "NDAQ",
     "NTRS",
     "PGR",
     "PRU",
-    "SBUX",
+    "SCHW",
     "SYF",
     "TFC",
     "TRV",
     "USB",
     "V",
-    "WFC"
+    "WFC",
+    "XOM"
   ],
-  "updated_at": "2026-09-04 02:34 AM Saudi time"
+  "updated_at": "2026-09-05 02:23 AM Saudi time"
 }

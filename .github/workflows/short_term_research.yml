@@ -1,0 +1,41 @@
+name: Short-Term Strategy Research
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+    paths:
+      - short_term_research.py
+      - requirements.txt
+      - .github/workflows/short_term_research.yml
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run locked short-term tournament
+        run: python short_term_research.py
+
+      - name: Upload research results
+        uses: actions/upload-artifact@v4
+        with:
+          name: short-term-research-results
+          path: data/short_term_research.json

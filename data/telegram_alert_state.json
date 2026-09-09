@@ -1,16 +1,13 @@
 {
   "active_buy_tickers": [
     "A",
-    "AAPL",
     "ADP",
     "AMD",
-    "AMZN",
+    "ANET",
     "APH",
     "BAC",
-    "BLK",
     "BRK-B",
     "C",
-    "COF",
     "CTAS",
     "DXCM",
     "EMR",
@@ -23,8 +20,6 @@
     "MET",
     "NDAQ",
     "NTRS",
-    "PAYX",
-    "PRU",
     "ROP",
     "SCHW",
     "SYF",
@@ -33,5 +28,5 @@
     "VRTX",
     "WFC"
   ],
-  "updated_at": "2026-09-09 02:42 AM Saudi time"
+  "updated_at": "2026-09-10 02:32 AM Saudi time"
 }

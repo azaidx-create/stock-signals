@@ -1,16 +1,15 @@
 {
   "active_buy_tickers": [
     "A",
+    "AAPL",
+    "ABBV",
     "ADP",
     "AMD",
     "ANET",
-    "APH",
     "BAC",
     "BRK-B",
     "C",
-    "CTAS",
     "DXCM",
-    "EMR",
     "EOG",
     "FAST",
     "HUM",
@@ -18,15 +17,15 @@
     "KO",
     "MDLZ",
     "MET",
-    "NDAQ",
     "NTRS",
+    "NVDA",
     "ROP",
     "SCHW",
-    "SYF",
+    "TMO",
     "TRV",
     "V",
     "VRTX",
     "WFC"
   ],
-  "updated_at": "2026-09-10 02:32 AM Saudi time"
+  "updated_at": "2026-09-11 02:26 AM Saudi time"
 }

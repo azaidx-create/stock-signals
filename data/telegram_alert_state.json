@@ -1,6 +1,7 @@
 {
   "active_buy_tickers": [
     "ABBV",
+    "ADI",
     "ADP",
     "BRK-B",
     "DHR",
@@ -8,16 +9,15 @@
     "FAST",
     "GOOGL",
     "KO",
-    "MDLZ",
     "MDT",
     "MET",
     "NVDA",
+    "PANW",
     "PFE",
-    "PGR",
+    "TGT",
     "TRV",
     "V",
-    "VRTX",
     "XOM"
   ],
-  "updated_at": "2026-09-18 02:44 AM Saudi time"
+  "updated_at": "2026-09-19 02:38 AM Saudi time"
 }

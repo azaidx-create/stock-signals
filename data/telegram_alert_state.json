@@ -1,20 +1,4 @@
 {
-  "active_buy_tickers": [
-    "AAPL",
-    "ABBV",
-    "ADI",
-    "BRK-B",
-    "COP",
-    "CVX",
-    "EMR",
-    "KO",
-    "MDT",
-    "MET",
-    "NVDA",
-    "TGT",
-    "TXN",
-    "VRTX",
-    "XOM"
-  ],
-  "updated_at": "2026-09-24 03:00 AM Saudi time"
+  "active_buy_tickers": [],
+  "updated_at": "2026-09-25 03:03 AM Saudi time"
 }

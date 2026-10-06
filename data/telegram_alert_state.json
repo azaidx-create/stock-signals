@@ -1,4 +1,20 @@
 {
-  "active_buy_tickers": [],
-  "updated_at": "2026-10-03 03:46 AM Saudi time"
+  "active_buy_tickers": [
+    "AAPL",
+    "ABBV",
+    "COP",
+    "CRM",
+    "CSCO",
+    "CVX",
+    "DXCM",
+    "EMR",
+    "FAST",
+    "GOOGL",
+    "HUM",
+    "MET",
+    "PFE",
+    "V",
+    "XOM"
+  ],
+  "updated_at": "2026-10-06 04:57 AM Saudi time"
 }

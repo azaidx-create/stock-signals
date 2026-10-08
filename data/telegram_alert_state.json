@@ -1,19 +1,4 @@
 {
-  "active_buy_tickers": [
-    "AAPL",
-    "AVGO",
-    "COP",
-    "CRM",
-    "CVX",
-    "DHR",
-    "EMR",
-    "FAST",
-    "GOOGL",
-    "HUM",
-    "MET",
-    "PFE",
-    "V",
-    "XOM"
-  ],
-  "updated_at": "2026-10-07 04:04 AM Saudi time"
+  "active_buy_tickers": [],
+  "updated_at": "2026-10-08 04:23 AM Saudi time"
 }

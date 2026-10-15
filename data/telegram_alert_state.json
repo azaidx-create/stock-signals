@@ -1,4 +1,21 @@
 {
-  "active_buy_tickers": [],
-  "updated_at": "2026-10-15 03:09 AM Saudi time"
+  "active_buy_tickers": [
+    "AFL",
+    "AMD",
+    "BLK",
+    "BRK-B",
+    "CVS",
+    "DXCM",
+    "EMR",
+    "GOOGL",
+    "ICE",
+    "KO",
+    "MDLZ",
+    "MET",
+    "MRK",
+    "TRV",
+    "TXN",
+    "UNP"
+  ],
+  "updated_at": "2026-10-16 02:55 AM Saudi time"
 }

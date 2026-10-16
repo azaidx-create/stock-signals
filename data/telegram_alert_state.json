@@ -1,21 +1,23 @@
 {
   "active_buy_tickers": [
+    "ADI",
     "AFL",
-    "AMD",
+    "ALL",
     "BLK",
     "BRK-B",
+    "CRM",
     "CVS",
-    "DXCM",
     "EMR",
-    "GOOGL",
+    "FAST",
+    "HUM",
     "ICE",
-    "KO",
     "MDLZ",
+    "MDT",
     "MET",
     "MRK",
-    "TRV",
+    "MSFT",
     "TXN",
     "UNP"
   ],
-  "updated_at": "2026-10-16 02:55 AM Saudi time"
+  "updated_at": "2026-10-17 02:57 AM Saudi time"
 }

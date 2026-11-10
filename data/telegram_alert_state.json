@@ -1,4 +1,21 @@
 {
-  "active_buy_tickers": [],
-  "updated_at": "2026-11-07 04:17 AM Saudi time"
+  "active_buy_tickers": [
+    "AAPL",
+    "ADI",
+    "AIG",
+    "CB",
+    "CNC",
+    "CSX",
+    "ELV",
+    "JPM",
+    "NSC",
+    "NTRS",
+    "PAYX",
+    "PNC",
+    "TRV",
+    "UNP",
+    "USB",
+    "WFC"
+  ],
+  "updated_at": "2026-11-10 06:50 AM Saudi time"
 }

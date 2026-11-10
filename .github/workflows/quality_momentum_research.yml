@@ -1,0 +1,31 @@
+name: Quality Momentum Research
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-research.txt
+      - name: Run quality momentum research
+        env:
+          SIMFIN_API_KEY: ${{ secrets.SIMFIN_API_KEY }}
+        run: python quality_momentum_research.py
+      - name: Upload quality momentum results
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-momentum-results
+          path: data/quality_momentum_research.json

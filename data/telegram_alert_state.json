@@ -1,20 +1,4 @@
 {
-  "active_buy_tickers": [
-    "A",
-    "AAPL",
-    "COP",
-    "CVX",
-    "DHR",
-    "EMR",
-    "EOG",
-    "NSC",
-    "NTRS",
-    "PNC",
-    "TGT",
-    "TMO",
-    "TXN",
-    "USB",
-    "WFC"
-  ],
-  "updated_at": "2026-11-17 07:12 AM Saudi time"
+  "active_buy_tickers": [],
+  "updated_at": "2026-11-18 06:09 AM Saudi time"
 }
